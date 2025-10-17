@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+# Test Änderung lokal
+
 # Funktion zur sicheren Passworteingabe mit Bestätigung
 function prompt_for_password() {
  local password password_confirm
