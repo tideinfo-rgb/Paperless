@@ -1,0 +1,77 @@
+# compose Datei aus dem Video "Paperless auf Windows 11 installieren - mit Docker Desktop zur Paperless-ngx Installation"
+# ralf-peter-kleinert.de
+
+services:
+  broker:
+    image: redis:latest
+    container_name: paperless-redis
+    restart: always
+
+  db:
+    image: postgres:latest
+    container_name: paperless-db
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: paperless
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: paperless
+
+  gotenberg:
+    image: gotenberg/gotenberg:latest
+    container_name: paperless-gotenberg
+    restart: always
+    environment:
+      DISABLE_GOOGLE_CHROME: "1"
+
+  tika:
+    image: apache/tika:latest
+    restart: always
+
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: paperless-webserver    
+    depends_on:
+      - db
+      - broker
+      - gotenberg
+      - tika
+    ports:
+      - "8000:8000"
+    restart: always
+    volumes:
+      - data:/usr/src/paperless/data
+      - media:/usr/src/paperless/media
+      - export:/usr/src/paperless/export
+      - consume:/usr/src/paperless/consume
+
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: db
+      PAPERLESS_DBNAME: paperless
+      PAPERLESS_DBUSER: paperless
+      PAPERLESS_DBPASS: paperless
+      PAPERLESS_TIME_ZONE: Europe/Berlin
+      PAPERLESS_SECRET_KEY: aksjdfhs87H/(&986jlkhgiu87659zol
+# Admin User entfernt - Sie legen nach Start einen neuen User an 	  
+      PAPERLESS_CONSUMPTION_DIR: /usr/src/paperless/consume
+      PAPERLESS_MEDIA_ROOT: /usr/src/paperless/media
+      PAPERLESS_EXPORT_DIR: /usr/src/paperless/export
+      PAPERLESS_TIKA_ENABLED: "1"
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+# Im Video noch nicht enthalten: 
+      PAPERLESS_CONSUMER_POLLING: "60"
+      PAPERLESS_CONSUMER_POLLING_DELAY: "30"
+      PAPERLESS_CONSUMER_POLLING_RETRY_COUNT: "3"
+      PAPERLESS_CONSUMER_DELETE_DUPLICATES: "true"
+      PAPERLESS_CONSUMER_RECURSIVE: "true"
+      PAPERLESS_EMPTY_TRASH_DELAY: "30"
+      PAPERLESS_OCR_LANGUAGE: deu+eng
+volumes:
+  data:
+  media:
+  export:
+  db_data:
+  consume:
