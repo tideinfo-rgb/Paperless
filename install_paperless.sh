@@ -2,6 +2,7 @@
 set -euo pipefail
 
 # Test Änderung lokal
+# ist jetzt öffentlich
 
 # Funktion zur sicheren Passworteingabe mit Bestätigung
 function prompt_for_password() {
